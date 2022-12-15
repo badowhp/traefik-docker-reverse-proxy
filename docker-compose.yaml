@@ -1,0 +1,68 @@
+version: '2.3'
+
+services:
+  httpd:
+    image: httpd:2.4
+    restart: on-failure
+    cpus: 1.0
+    mem_limit: 256m
+    volumes:
+       - ./webroot:/var/www/app/
+    networks:
+      - proxy
+      - service  
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.httpd.rule=Host(`somni.biz`)
+      - traefik.http.middlewares.x-forward-proto.headers.customrequestheaders.X-Forwarded-Proto=https
+      - traefik.http.routers.httpd.middlewares=x-forward-proto@docker
+      - traefik.http.services.httpd.loadbalancer.server.port=80
+      - traefik.http.routers.httpd.service=httpd
+      - traefik.http.routers.httpd.entrypoints=websecure
+      - traefik.http.routers.httpd.tls=true
+      - traefik.http.routers.httpd.tls.certresolver=letsencrypt
+  
+  db:
+
+    image: mariadb:10.4
+    restart: always
+    mem_limit: 256m
+    mem_reservation: 128m
+    networks:
+      - service
+    expose:
+      - 3306
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+  traefik:
+    image: "traefik:v2.9"
+    restart: always
+    ports:
+     - "80:80"
+     - "443:443"
+    volumes:
+     - ./certs/:/certs/
+     - ./traefik/traefik.yaml:/etc/traefik/traefik.yaml
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./letsencrypt:/letsencrypt
+    networks:
+     - proxy
+
+networks:
+  proxy:
+    external:
+      name: proxy
+  networks:
+  service:
+    driver: bridge
+
+volumes:
+  mysql: 
+    driver: local
