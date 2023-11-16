@@ -48,10 +48,11 @@ services:
      - "80:80"
      - "443:443"
     volumes:
-     - ./certs/:/certs/
      - ./traefik/traefik.yaml:/etc/traefik/traefik.yaml
      - /var/run/docker.sock:/var/run/docker.sock
+     - ./traefik/config.yaml:/config.yaml
      - ./letsencrypt:/letsencrypt
+     - ./acme.json:/acme.json
     networks:
      - proxy
 

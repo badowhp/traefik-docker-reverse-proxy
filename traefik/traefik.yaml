@@ -26,7 +26,7 @@ providers:
     exposedByDefault: false
     watch: true
   file:
-    filename: /etc/traefik/traefik.yaml # THIS IS THE IMPORTANT PART
+    filename: traefik.yaml # THIS IS THE IMPORTANT PART
     watch: true # THIS IS THE IMPORTANT PART
 
 # listen on 80/443, and redirect all 80 to 443 via 301
